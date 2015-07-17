@@ -412,7 +412,7 @@ void Y_ml4read(int nArgs)
     Array *a= PushDataBlock(NewArray(&stringStruct, (Dimension *)0));
     char *buf;
     a->value.q[0] = buf = p_malloc(nElements+1);
-    if (DEBUG) printf("strlen: %d\n",strlen((void *)a->value.q[0]));
+    if (DEBUG) printf("strlen: %d\n",(int)strlen((void *)a->value.q[0]));
     //    bytes_read = fread(a->value.q[0],1,nElements,fs);
     bytes_read = fread(buf,1,nElements,fs);
     *((char *)buf + nElements) = 0;  // append a NULL to text string
