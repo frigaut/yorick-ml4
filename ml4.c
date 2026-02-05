@@ -104,7 +104,7 @@ int matout(char *fullname,char *varname,void *data,int nrows,int ncols,char vart
   int  mrows,mcols,imagf;
   int i;
   FILE *fs;
-  
+
   mrows = nrows;
   mcols = ncols;
   nelem = mrows*mcols;
@@ -123,7 +123,7 @@ int matout(char *fullname,char *varname,void *data,int nrows,int ncols,char vart
     if (endianess=='B') { for (i=0;i<nelem;i++) SWAP_FLOAT(varf[i]); };
     break;
   case 'l':    /* 4-byte int, row-wise */
-    type=20;  
+    type=20;
     size=4;
     int *varl=data;
     if (endianess=='B') { for (i=0;i<nelem;i++) SWAP_INT(varl[i]); };
@@ -177,7 +177,7 @@ int matout(char *fullname,char *varname,void *data,int nrows,int ncols,char vart
     fd[i] = fs;
     if ((i==nfiles) && (nfiles<MAXFILES-1)) nfiles++;
   }
-  
+
   imagf=0;
   if (endianess=='B') SWAP_INT(type);
   if (fwrite(&type,sizeof(int),1,fs) != 1) {
@@ -199,7 +199,7 @@ int matout(char *fullname,char *varname,void *data,int nrows,int ncols,char vart
     writerr();
     return (-1);
   }
-    
+
   namelen=strlen(varname)+1;
   if (endianess=='B') SWAP_INT(namelen);
   if (fwrite(&namelen,sizeof(int),1,fs) != 1) {
@@ -207,7 +207,7 @@ int matout(char *fullname,char *varname,void *data,int nrows,int ncols,char vart
     return (-1);
   }
   if (endianess=='B') SWAP_INT(namelen);
-  if (fwrite(varname,(unsigned int)namelen,1,fs) != 1) {  
+  if (fwrite(varname,(unsigned int)namelen,1,fs) != 1) {
     writerr();
     return (-1);
   }
@@ -218,7 +218,7 @@ int matout(char *fullname,char *varname,void *data,int nrows,int ncols,char vart
   }
 
   matclose(fullname);
-  
+
   return (0);
 }
 
@@ -240,7 +240,7 @@ FILE *openmat(char *fullname)
 {
   FILE *fs;
   int i;
-  
+
   for (i=0 ; i<nfiles ; i++) {
     if (!strcmp(fullname,matfile[i])) break;
   }
@@ -264,10 +264,10 @@ FILE *openmat(char *fullname)
     fd[i] = fs;
     if ((i==nfiles) && (nfiles<MAXFILES-1)) nfiles++;
   }
-  
+
   return (fs);
 }
-  
+
 /*******************************************************/
 
 void Y_ml4read(int nArgs)
@@ -276,7 +276,7 @@ void Y_ml4read(int nArgs)
   char *filename="";
   char *varname="";
   int leave_open = 0;
-  
+
   if (nArgs==2) {
     filename=YGetString(sp-nArgs+1);
     varname=YGetString(sp-nArgs+2);
@@ -303,7 +303,7 @@ void Y_ml4read(int nArgs)
 
   fileptr = ftell(fs);
   if (DEBUG) printf("@ position %d\n",fileptr);
-  
+
   bytes_read = fread(&type,sizeof(int),1,fs);
   if (bytes_read==0) {
     matclose(filename);
@@ -312,7 +312,7 @@ void Y_ml4read(int nArgs)
   fread(&mrows,sizeof(int),1,fs);
   fread(&mcols,sizeof(int),1,fs);
   fread(&imagf,sizeof(int),1,fs);
-    
+
   fread(&namelen,sizeof(int),1,fs);
 
   if (namelen & 0xffff0000) {
@@ -343,7 +343,7 @@ void Y_ml4read(int nArgs)
   }
 
   nElements = (unsigned)mrows*(unsigned)mcols;
-  
+
   Dimension *tmp=tmpDims;
   tmpDims=0;
   FreeDimension(tmp);
@@ -355,7 +355,7 @@ void Y_ml4read(int nArgs)
     tmpDims= NewDimension(mrows, 1L, (Dimension *)0);
     tmpDims= NewDimension(mcols, 1L, tmpDims);
   }
-  
+
   if (type==0) {
     // 8-byte doubles
     size = 8;
@@ -376,7 +376,7 @@ void Y_ml4read(int nArgs)
     // 4-byte int
     size = 4;
     Array *a= PushDataBlock(NewArray(&intStruct, tmpDims));
-    int *data = a->value.l;
+    int *data = (int *)a->value.l;
     bytes_read = fread((void *)data,size,nElements,fs);
     if (endian=='B') { for (i=0;i<nElements;i++) SWAP_INT(data[i]); }
 
@@ -448,7 +448,7 @@ int matskip(char *filename)
 
   fs = openmat(filename);
   if (fs == NULL) return -1;
-  
+
   fileptr = ftell(fs);
 
   bytes_read = fread(&type,sizeof(long),1,fs);
@@ -456,7 +456,7 @@ int matskip(char *filename)
   fread(&mrows,sizeof(long),1,fs);
   fread(&mcols,sizeof(long),1,fs);
   fread(&imagf,sizeof(long),1,fs);
-    
+
   fread(&namelen,sizeof(long),1,fs);
 
   //if (type & 0xffff0000) {
@@ -473,15 +473,15 @@ int matskip(char *filename)
     return(-1);
   }
 
-  fread(tempvarname,(unsigned int)namelen,1,fs);   
+  fread(tempvarname,(unsigned int)namelen,1,fs);
 
-  if (type==0) {  // 8-byte doubles 
+  if (type==0) {  // 8-byte doubles
     size = 8;
-  } else if (type==10) {  // 4-byte reals 
+  } else if (type==10) {  // 4-byte reals
     size = 4;
-  } else if ((type==120) || (type==20)) {  // 4-byte int 
+  } else if ((type==120) || (type==20)) {  // 4-byte int
     size = 4;
-  } else if ((type==30) || (type==40)) {  // 2-byte signed (30) or unsigned (40) shorts 
+  } else if ((type==30) || (type==40)) {  // 2-byte signed (30) or unsigned (40) shorts
     size = 2;
   } else if ((type==50) || (type==51)) {  // 1-byte signed or unsigned chars (50) or text (51)
     size = 1;
@@ -511,7 +511,7 @@ int matsearch(char *filename, char *varname)
   fs = openmat(filename);
   if (fs == NULL) return -1;
 
-  return matfind(fs,varname,50000);    
+  return matfind(fs,varname,50000);
 }
 
 void Y_ml4search(int nArgs)
@@ -524,7 +524,7 @@ void Y_ml4search(int nArgs)
   fs = openmat(filename);
   if (fs == NULL) YError(p_strncat("Can't open file ",filename,0));
 
-  PushIntValue(matfind(fs,varname,50000));    
+  PushIntValue(matfind(fs,varname,50000));
 }
 
 
@@ -540,7 +540,7 @@ void Y_ml4scan(int nArgs)
   } else {
     YError("ml4scan takes one or two arguments");
   }
-  
+
   FILE *fs;
 
   fs = openmat(filename);
@@ -691,7 +691,7 @@ int matfind(FILE *fs, char *var, int maxVarsToSearch)
   }
   //lseek(fh,fileptr,SEEK_SET);
   fseek(fs,fileptr,SEEK_SET);
-  return(0); 
+  return(0);
 
 }
 
@@ -713,7 +713,7 @@ void matscan(FILE *fs, int maxVarsToSearch, int returnString)
   int varnum=0;
   Array *a= PushDataBlock(NewArray(&stringStruct, (Dimension *)0));
   long extra=1;
-  
+
   fileptr = ftell(fs);
 
   if (DEBUG) printf("Entering matscan\n");
@@ -742,28 +742,28 @@ void matscan(FILE *fs, int maxVarsToSearch, int returnString)
       if ((namelen = info[4])<80L) {
         if (fread(varname,1,info[4],fs)==(int)info[4]) {
           if (type==0) {
-            // 8-byte doubles 
+            // 8-byte doubles
             stype=p_strcpy("double*8"); nbyt=8;
           } else if (type==10) {
-            // 4-byte reals 
+            // 4-byte reals
             stype=p_strcpy("real*4  "); nbyt=4;
           } else if ((type==120) || (type==20)) {
-            // 4-byte int 
+            // 4-byte int
             stype=p_strcpy("int*4   "); nbyt=4;
           } else if (type==30) {
-            // 2-byte signed (30) shorts 
+            // 2-byte signed (30) shorts
             stype=p_strcpy("short*2 "); nbyt=2;
           } else if (type==40)  {
-            // 2-byte unsigned (40) shorts 
+            // 2-byte unsigned (40) shorts
             stype=p_strcpy("ushort*2"); nbyt=2;
           } else if ((type==50) || (type==51))  {
             // 1-byte signed or unsigned chars (50) or text (51)
-            stype=p_strcpy("char*1  "); nbyt=1; 
+            stype=p_strcpy("char*1  "); nbyt=1;
           } else {
             sprintf(message,"Unknown data type %d",type);
             YError(message);
           }
-          
+
           if (returnString) {
             if (varnum!=0) a= PushDataBlock((void *)GrowArray(a, extra));
             a->value.q[varnum] = p_malloc(81);
@@ -826,7 +826,7 @@ int matchvarname(char *var, char *match)
     n2 = strlen(match);
     if (n1!=n2) return 0;        // guaranteed mismatch if lengths of strings are not equal
   }
-    
+
   for (i=0,p1=var,p2=match ; i<n2 ; i++,p1++,p2++) {
     if (*p2 == '?') continue;   // '?' matches any character in this position
     if (*p1 != *p2) {
@@ -834,7 +834,7 @@ int matchvarname(char *var, char *match)
     }
   }
 
-  return 1;       // 
+  return 1;       //
 }
 
 /***********************************************/
@@ -915,4 +915,3 @@ void *swap(void* Addr, const int Nb) {
   }
   return (void*)Swapped;
 }
-
